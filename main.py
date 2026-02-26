@@ -1,52 +1,56 @@
 import datetime
-from numpy import ndarray
-from skyfield.api import load, N, W, wgs84
+from numpy import ndarray, float64
+from skyfield.api import load, wgs84
 from skyfield import vectorlib, timelib, units
 
 
-def find_radec(
-    latitude: float,
-    longitude: float,
-    planet: vectorlib.VectorSum | ndarray,
-    t: timelib.Time,
-) -> tuple[units.Angle, units.Angle, units.Distance]:
-    city = find_city_location(latitude, longitude)
-    astrometric = city.at(t).observe(planet)
-    ra, dec, distance = astrometric.radec()
-    return (ra, dec, distance)
-
-
-def find_altazdist(
-    latitude: float,
-    longitude: float,
-    planet: vectorlib.VectorSum | ndarray,
-    earth: vectorlib.VectorSum | ndarray,
-    t: timelib.Time,
-) -> tuple[units.Angle, units.Angle, units.Distance]:
-    city = find_city_location(latitude, longitude, earth)
-    apparent = city.at(t).observe(planet).apparent()
-    alt, az, dist = apparent.altaz()
-    return (alt, az, dist)
-
-
-def find_city_location(
-    latitude: float, longitude: float, earth: vectorlib.VectorSum | ndarray
-) -> vectorlib.VectorSum:
-    return earth + wgs84.latlon(latitude * N, longitude * W)
-
-
 class Observer:
-    def __init__(self) -> None:
+    PLANETS_TO_LOAD = [
+        "mercury",
+        "venus",
+        "mars",
+        "jupiter barycenter",
+        "saturn barycenter",
+        "uranus barycenter",
+        "neptune barycenter",
+    ]
+
+    def __init__(self, latitude: float, longitude: float) -> None:
         self.ts = load.timescale()
         self.planets = load("de421.bsp")
         self.earth = self.planets["earth"]
-        self.mars = self.planets["mars"]
+        self.loaded_planets = {
+            planet_name: self.planets[planet_name]
+            for planet_name in self.PLANETS_TO_LOAD
+        }
+        self.latitude = latitude
+        self.longitude = longitude
+        self.location = self.earth + wgs84.latlon(latitude, longitude)
+
+    def find_radec(
+        self,
+        planet: vectorlib.VectorSum,
+        t: timelib.Time,
+    ) -> tuple[units.Angle, units.Angle, units.Distance]:
+        astrometric = self.location.at(t).observe(planet)
+        ra, dec, distance = astrometric.radec()
+        return (ra, dec, distance)
+
+    def altaz(
+        self,
+        planet: string,
+        t: timelib.Time,
+    ) -> tuple[float64, float64, float64]:
+        planet = self.loaded_planets[planet]
+        apparent = self.location.at(t).observe(planet).apparent()
+        alt, az, dist = apparent.altaz()
+        return (alt.degrees, az.degrees, dist.au)
 
 
-observer = Observer()
+observer = Observer(42.42, 23.20)
 
 t = observer.ts.from_datetime(
     datetime.datetime(2026, 2, 25, 21, 39, 00, 00, datetime.timezone.utc)
 )
 
-print(find_altazdist(42.42, 23.20, observer.mars, observer.earth, t))
+print(observer.altaz("mars", t))
