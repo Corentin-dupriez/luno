@@ -1,9 +1,13 @@
 import requests
 
 url = "https://nominatim.openstreetmap.org/search"
-params = {"q": "Sofia, Bulgaria", "format": "json", "limit": 1}
-
 headers = {"User-Agent": "my-geocoding-app/1.0 (your@email.com)"}
-response = requests.get(url=url, params=params, headers=headers)
 
-print(response.json())
+
+def city_geoposition(city_name: str) -> tuple[float, float]:
+    params = {"q": city_name, "format": "json", "limit": 1}
+    response = requests.get(url=url, params=params, headers=headers)
+    parsed_response = response.json()[0]
+    longitude = float(parsed_response["lon"])
+    latitude = float(parsed_response["lat"])
+    return (latitude, longitude)
