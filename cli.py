@@ -1,7 +1,7 @@
 import argparse
 import datetime
-import geocoder
-from observer import Observer
+import geo.geocoder as geocoder
+from astro.observer import Observer
 
 
 class ArgumentMissing(Exception):
