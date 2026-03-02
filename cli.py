@@ -51,7 +51,7 @@ def main() -> None:
         longitude,
         datetime.datetime(2026, 2, 25, 21, 39, 00, 00, datetime.timezone.utc),
     )
-    print(observer)
+    print(observer.rate_observable_planets())
 
 
 if __name__ == "__main__":

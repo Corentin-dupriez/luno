@@ -12,6 +12,7 @@ class Observation:
     azimuth_deg: float
     distance_au: float
     visible: bool
+    rating: int = 0
 
 
 class Observer:
@@ -23,6 +24,16 @@ class Observer:
         "saturn": "saturn barycenter",
         "uranus": "uranus barycenter",
         "neptune": "neptune barycenter",
+    }
+
+    VISUAL_MAGNITUDE = {
+        "Venus": -4,
+        "Jupiter": -2.2,
+        "Mercury": -2.5,
+        "Mars": -2.9,
+        "Saturn": -0.5,
+        "Uranus": 5.7,
+        "Neptune": 7.8,
     }
 
     def __init__(
@@ -74,6 +85,15 @@ class Observer:
     def observable_planets(self):
         planets = [self.altaz(planet, self.t) for planet in self.loaded_planets]
         return [planet for planet in planets if planet.visible]
+
+    def rate_observable_planets(self):
+        obserable_planets = self.observable_planets()
+        for planet in obserable_planets:
+            planet.rating = int(planet.altitude_deg / 90 * 50) + max(
+                0, 10 - self.VISUAL_MAGNITUDE[planet.planet_name]
+            )
+
+        return obserable_planets
 
 
 if __name__ == "__main__":
