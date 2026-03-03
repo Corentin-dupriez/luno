@@ -1,6 +1,6 @@
 import datetime
-from numpy import float64
-from skyfield.api import load, wgs84
+from typing import List
+from skyfield.api import load, wgs84, utc
 from skyfield import timelib, units
 from dataclasses import dataclass
 
@@ -12,7 +12,7 @@ class Observation:
     azimuth_deg: float
     distance_au: float
     visible: bool
-    rating: int = 0
+    scorer: int | None = None
 
 
 class Observer:
@@ -53,7 +53,7 @@ class Observer:
         self.latitude = latitude
         self.longitude = longitude
         self.location = self.earth + wgs84.latlon(latitude, longitude)
-        self.date = date
+        self.date = date.replace(tzinfo=utc)
         self.t = self.ts.from_datetime(self.date)
 
     def find_radec(
@@ -74,36 +74,18 @@ class Observer:
         planet = self.loaded_planets[planet_name]
         apparent = self.location.at(t).observe(planet).apparent()
         alt, az, dist = apparent.altaz()
-        return Observation(
+        observation = Observation(
             planet_name.capitalize(),
             float(alt.degrees),
             float(az.degrees),
             float(dist.au),
             bool(alt.degrees > 0),
         )
+        return observation
 
-    def observable_planets(self):
+    def observable_planets(self) -> List[Observation]:
         planets = [self.altaz(planet, self.t) for planet in self.loaded_planets]
         return [planet for planet in planets if planet.visible]
-
-    def rate_observable_planets(self):
-        interest_bonus = {
-            "Venus": 5,
-            "Jupiter": 10,
-            "Saturn": 15,
-            "Mars": 8,
-            "Uranus": 3,
-            "Neptune": 1,
-        }
-        obserable_planets = self.observable_planets()
-        for planet in obserable_planets:
-            planet.rating = (
-                int(planet.altitude_deg / 90 * 50)
-                + max(0, 10 - self.VISUAL_MAGNITUDE[planet.planet_name])
-                + interest_bonus[planet.planet_name]
-            )
-
-        return obserable_planets
 
 
 if __name__ == "__main__":

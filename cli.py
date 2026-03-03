@@ -2,6 +2,7 @@ import argparse
 import datetime
 import geo.geocoder as geocoder
 from astro.observer import Observer
+from astro.scorer import ObservationScorer
 
 
 class ArgumentMissing(Exception):
@@ -49,9 +50,12 @@ def main() -> None:
     observer = Observer(
         latitude,
         longitude,
-        datetime.datetime(2026, 2, 25, 21, 39, 00, 00, datetime.timezone.utc),
+        datetime.datetime.now(),
     )
-    print(observer.rate_observable_planets())
+    planets = observer.observable_planets()
+    for planet in planets:
+        planet.scorer = ObservationScorer().score(planet)
+    print(planets)
 
 
 if __name__ == "__main__":
