@@ -1,7 +1,7 @@
 from unittest import TestCase
 import datetime
 import unittest
-from observer import Observer
+from astro.observer import Observer
 
 
 class TestObserver(TestCase):
