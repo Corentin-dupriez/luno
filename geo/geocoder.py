@@ -4,10 +4,17 @@ url = "https://nominatim.openstreetmap.org/search"
 headers = {"User-Agent": "my-geocoding-app/1.0 (your@email.com)"}
 
 
-def city_geoposition(city_name: str) -> tuple[float, float]:
+def city_geoposition(city_name: str) -> tuple[float, float] | None:
     params = {"q": city_name, "format": "json", "limit": 1}
-    response = requests.get(url=url, params=params, headers=headers)
-    parsed_response = response.json()[0]
-    longitude = float(parsed_response["lon"])
-    latitude = float(parsed_response["lat"])
-    return (latitude, longitude)
+    try:
+        response = requests.get(url=url, params=params, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data:
+            return None
+        longitude = float(data[0]["lon"])
+        latitude = float(data[0]["lat"])
+        return (latitude, longitude)
+    except requests.RequestException:
+        return None
