@@ -1,12 +1,23 @@
 import argparse
 import datetime
+from typing import List
 import geo.geocoder as geocoder
-from astro.observer import Observer
+from astro.observer import Observation, Observer
 from astro.scorer import ObservationScorer
 
 
 class ArgumentMissing(Exception):
     pass
+
+
+def display_visible_planets(planets: List[Observation]) -> None:
+    ordered_planets = sorted(planets, key=lambda x: -x.scorer)
+    print("Visible planets:")
+    print(
+        "\n".join(
+            [f" - {planet.planet_name}, score: {planet.scorer}" for planet in planets]
+        )
+    )
 
 
 def main() -> None:
@@ -55,7 +66,7 @@ def main() -> None:
     planets = observer.observable_planets()
     for planet in planets:
         planet.scorer = ObservationScorer().score(planet)
-    print(planets)
+    display_visible_planets(planets)
 
 
 if __name__ == "__main__":
