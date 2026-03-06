@@ -12,6 +12,7 @@ class ObservationScorer:
         "Neptune": 7.8,
     }
 
+    # TODO: Implement other inputs than observation
     def score(
         self, observation: Observation, moon=None, weather=None, sun_alt=None
     ) -> int:

@@ -10,6 +10,10 @@ class ArgumentMissing(Exception):
     pass
 
 
+class UnknownCity(Exception):
+    pass
+
+
 def display_visible_planets(planets: List[Observation]) -> None:
     ordered_planets = sorted(planets, key=lambda x: -x.scorer)
     print("Visible planets:")
@@ -50,9 +54,15 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.city and not args.latitude and not args.longitude:
-        latitude, longitude = geocoder.city_geoposition(args.city)
+        geoposition = geocoder.city_geoposition(args.city)
+        if geoposition is None:
+            raise UnknownCity("City not found")
+        else:
+            latitude, longitude = geoposition[0], geoposition[1]
+
     elif args.latitude and args.longitude and not args.city:
         latitude, longitude = args.latitude, args.longitude
+
     else:
         raise ArgumentMissing(
             "You should enter the city name OR latitude and longitude"
